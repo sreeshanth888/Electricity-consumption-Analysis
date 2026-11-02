@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voltwise | Electricity Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">ϟ</div><div><strong>voltwise</strong><small>ENERGY INTELLIGENCE</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav-item active" data-target="dashboard"><span>▦</span> Overview</button>
+    <button class="nav-item" data-target="consumers"><span>♙</span> Consumers & meters</button>
+    <button class="nav-item" data-target="readings"><span>⌁</span> Meter readings</button>
+    <button class="nav-item" data-target="reports"><span>▥</span> Analytics & reports</button>
+    <div class="sidebar-bottom"><div class="status-dot"></div><div><strong>Local workspace</strong><small id="db-status">Checking database…</small></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="mobile-brand">ϟ <strong>voltwise</strong></div>
+      <div class="crumb">Workspace <span>/</span> <strong id="page-crumb">Overview</strong></div>
+      <div class="top-right"><span class="live-dot"></span><span>System status</span><div class="avatar">VW</div></div>
+    </header>
+
+    <section class="page active" id="dashboard">
+      <div class="page-heading"><div><p class="eyebrow">YOUR ENERGY, IN FOCUS</p><h1>Good afternoon.</h1><p class="subhead">A clear picture of consumption, one reading at a time.</p></div><button class="btn btn-primary" data-goto="readings">＋ Add a reading</button></div>
+      <div class="stat-grid">
+        <article class="stat-card"><div class="stat-top"><span>Total consumers</span><span class="stat-icon lavender">♙</span></div><div class="stat-value" id="stat-consumers">—</div><div class="stat-foot">Registered accounts</div></article>
+        <article class="stat-card"><div class="stat-top"><span>Active meters</span><span class="stat-icon mint">ϟ</span></div><div class="stat-value" id="stat-meters">—</div><div class="stat-foot">Currently monitored</div></article>
+        <article class="stat-card"><div class="stat-top"><span>Current month usage</span><span class="stat-icon peach">↗</span></div><div class="stat-value"><span id="stat-usage">—</span><small>kWh</small></div><div class="stat-foot">From available readings</div></article>
+        <article class="stat-card"><div class="stat-top"><span>Readings logged</span><span class="stat-icon blue">⌁</span></div><div class="stat-value" id="stat-readings">—</div><div class="stat-foot">All recorded readings</div></article>
+      </div>
+      <div class="content-grid">
+        <article class="panel chart-panel"><div class="panel-heading"><div><h2>Consumption overview</h2><p>Calculated usage by period · kWh</p></div><select id="dashboard-period" class="select-small"><option value="month">This month</option><option value="year" selected>This year</option></select></div><div class="chart-wrap"><canvas id="overview-chart"></canvas><div class="empty-chart" id="chart-empty">Add at least two readings for a meter to see consumption trends.</div></div></article>
+        <article class="panel"><div class="panel-heading"><div><h2>Quick actions</h2><p>Keep your records up to date</p></div></div><div class="quick-actions"><button data-goto="consumers"><span class="qa-icon lavender">♙</span><span><strong>Register a consumer</strong><small>Add a customer or organization</small></span><b>→</b></button><button data-goto="consumers"><span class="qa-icon mint">ϟ</span><span><strong>Register a meter</strong><small>Link a meter to a consumer</small></span><b>→</b></button><button data-goto="readings"><span class="qa-icon peach">⌁</span><span><strong>Record a reading</strong><small>Enter a cumulative kWh value</small></span><b>→</b></button><button data-goto="reports"><span class="qa-icon blue">▥</span><span><strong>View analytics</strong><small>Explore usage and exceptions</small></span><b>→</b></button></div></article>
+      </div>
+      <article class="panel recent-panel"><div class="panel-heading"><div><h2>Recent readings</h2><p>Latest meter register updates</p></div><button class="btn btn-quiet" data-goto="readings">View all →</button></div><div class="table-wrap"><table><thead><tr><th>Consumer</th><th>Meter ID</th><th>Reading date</th><th>Cumulative reading</th><th>Unit</th></tr></thead><tbody id="recent-table"><tr><td colspan="5" class="empty-cell">Loading readings…</td></tr></tbody></table></div></article>
+    </section>
+
+    <section class="page" id="consumers">
+      <div class="page-heading"><div><p class="eyebrow">CUSTOMER DIRECTORY</p><h1>Consumers & meters</h1><p class="subhead">Manage the people and meters behind each reading.</p></div></div>
+      <div class="form-grid">
+        <article class="panel form-panel"><div class="panel-heading"><div><h2>Add a consumer</h2><p>Create a new customer record</p></div><span class="form-step">01</span></div><form id="consumer-form"><label>Consumer / organization name<input name="consumer_name" required maxlength="120" placeholder="e.g. Greenfield Residence"></label><div class="two-col"><label>Consumer type<select name="consumer_type"><option>Residential</option><option>Commercial</option><option>Industrial</option><option>Agricultural</option><option>Other</option></select></label><label>Region / city<input name="region" required maxlength="100" placeholder="e.g. Hyderabad"></label></div><button class="btn btn-primary" type="submit">Create consumer <span>→</span></button></form></article>
+        <article class="panel form-panel"><div class="panel-heading"><div><h2>Register a meter</h2><p>Connect a meter to a consumer</p></div><span class="form-step">02</span></div><form id="meter-form"><label>Consumer<select name="consumer_id" id="meter-consumer" required><option value="">Add a consumer first</option></select></label><label>Unique meter code<input name="meter_code" required maxlength="60" placeholder="e.g. HYD-1001"></label><label>Installation date <span class="optional">(optional)</span><input name="installed_on" type="date"></label><button class="btn btn-primary" type="submit">Register meter <span>→</span></button></form></article>
+      </div>
+      <article class="panel"><div class="panel-heading"><div><h2>Consumer directory</h2><p>All registered consumers and linked meters</p></div><span class="count-pill" id="consumer-count">0 records</span></div><div class="table-wrap"><table><thead><tr><th>Consumer</th><th>Type</th><th>Region</th><th>Meters</th></tr></thead><tbody id="consumer-table"><tr><td colspan="4" class="empty-cell">Loading…</td></tr></tbody></table></div></article>
+      <article class="panel"><div class="panel-heading"><div><h2>Registered meters</h2><p>Meter codes and current status</p></div></div><div class="table-wrap"><table><thead><tr><th>Meter code</th><th>Consumer</th><th>Region</th><th>Installed on</th><th>Status</th></tr></thead><tbody id="meter-table"><tr><td colspan="5" class="empty-cell">Loading…</td></tr></tbody></table></div></article>
+    </section>
+
+    <section class="page" id="readings">
+      <div class="page-heading"><div><p class="eyebrow">METER REGISTER</p><h1>Meter readings</h1><p class="subhead">Record the cumulative meter value shown on the physical meter.</p></div></div>
+      <div class="reading-layout">
+        <article class="panel form-panel"><div class="panel-heading"><div><h2>Log a new reading</h2><p>Enter the register value exactly as displayed</p></div><span class="form-step">NEW</span></div><form id="reading-form"><label>Meter<select name="meter_id" id="reading-meter" required><option value="">Register a meter first</option></select></label><div class="two-col"><label>Reading date<input name="reading_date" id="reading-date" type="date" required></label><label>Cumulative kWh<input name="cumulative_kwh" type="number" min="0" step="0.001" required placeholder="e.g. 1380.500"></label></div><label>Note <span class="optional">(optional)</span><input name="note" maxlength="255" placeholder="e.g. Monthly manual reading"></label><div class="info-note"><span>ⓘ</span><p><strong>Remember:</strong> Enter the total cumulative register, not the month's consumption. Consumption is calculated from two consecutive readings.</p></div><button class="btn btn-primary" type="submit">Save reading <span>→</span></button></form></article>
+        <article class="panel guidance-panel"><div class="guide-icon">⌁</div><h2>Good readings make good insights.</h2><p>For accurate calculations, record a reading whenever the meter is checked. The system compares each new value with the previous and next reading for that meter.</p><div class="guide-rule"><span class="rule-number">01</span><div><strong>Use the correct date</strong><p>Each meter can have only one reading per date.</p></div></div><div class="guide-rule"><span class="rule-number">02</span><div><strong>Keep register values cumulative</strong><p>Values should normally stay the same or increase.</p></div></div><div class="guide-rule"><span class="rule-number">03</span><div><strong>Review flagged changes</strong><p>Resets and rollovers are flagged for manual review.</p></div></div></article>
+      </div>
+      <article class="panel"><div class="panel-heading"><div><h2>Reading history</h2><p>Most recent 500 records</p></div><span class="count-pill" id="reading-count">0 readings</span></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Consumer</th><th>Meter</th><th>Cumulative value</th><th>Note</th></tr></thead><tbody id="readings-table"><tr><td colspan="5" class="empty-cell">Loading…</td></tr></tbody></table></div></article>
+    </section>
+
+    <section class="page" id="reports">
+      <div class="page-heading"><div><p class="eyebrow">DATA & INSIGHTS</p><h1>Analytics & reports</h1><p class="subhead">Understand usage patterns and identify readings that need attention.</p></div><button class="btn btn-quiet" id="export-csv">↓ Export report CSV</button></div>
+      <article class="panel filter-panel"><div class="filter-field"><label>Report period<select id="report-period"><option value="month">Current month</option><option value="year" selected>Current year</option><option value="range">Custom date range</option></select></label></div><div class="filter-field range-field"><label>Start date<input id="report-start" type="date"></label></div><div class="filter-field range-field"><label>End date<input id="report-end" type="date"></label></div><div class="filter-field"><label>High-usage threshold (kWh)<input id="threshold" type="number" min="0" step="1" value="500"></label></div><button class="btn btn-primary" id="run-report">Run report →</button></article>
+      <div class="report-grid"><article class="panel chart-panel"><div class="panel-heading"><div><h2>Usage trend</h2><p>Total calculated consumption · kWh</p></div></div><div class="chart-wrap"><canvas id="report-chart"></canvas><div class="empty-chart" id="report-chart-empty">No valid consumption data for this period.</div></div></article><article class="panel chart-panel"><div class="panel-heading"><div><h2>Highest usage</h2><p>Consumer and meter comparison</p></div></div><div class="chart-wrap"><canvas id="consumer-chart"></canvas><div class="empty-chart" id="consumer-chart-empty">No usage to compare yet.</div></div></article></div>
+      <article class="panel"><div class="panel-heading"><div><h2>High-usage list</h2><p>Usage greater than your configured threshold</p></div><span class="count-pill" id="high-count">0 flagged</span></div><div class="table-wrap"><table><thead><tr><th>Period</th><th>Consumer</th><th>Meter</th><th>Usage (kWh)</th><th>Flag</th></tr></thead><tbody id="high-table"><tr><td colspan="5" class="empty-cell">Run a report to load results.</td></tr></tbody></table></div></article>
+      <article class="panel"><div class="panel-heading"><div><h2>Reading validation</h2><p>Possible meter resets, rollovers, or entry errors</p></div><span class="count-pill warning-pill" id="validation-count">0 issues</span></div><div class="table-wrap"><table><thead><tr><th>Consumer</th><th>Meter</th><th>Earlier reading</th><th>Later reading</th><th>Issue</th></tr></thead><tbody id="validation-table"><tr><td colspan="5" class="empty-cell">Run a report to load validation results.</td></tr></tbody></table></div></article>
+      <p class="method-note">Analytical estimates only. Usage = later cumulative kWh − previous cumulative kWh. Usage is grouped by the later reading date; this does not replace official billing calculations.</p>
+    </section>
+    <footer>VOLTWISE <span>·</span> Electricity Consumption Analysis <span class="footer-right">Built for clear, responsible energy data.</span></footer>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
